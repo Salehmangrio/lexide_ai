@@ -75,20 +75,20 @@ export default function AuthPage() {
 
   // Google Sign-In
   const signInWithGoogle = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin + "/app",
-        },
-      });
-      if (error) throw error;
-    } catch (error) {
-      toast.error(error.message);
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/app",
+      },
+    });
+    if (error) throw error;
+  } catch (error) {
+    toast.error(error.message);
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center px-4">
