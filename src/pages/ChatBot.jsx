@@ -273,7 +273,7 @@ How can I assist you today?`,
               </div>
 
               {msg.role === "user" && (
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                <div className="w-11 h-11 my-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg flex-shrink-0">
                   <User className="w-6 h-6 text-white" />
                 </div>
               )}
