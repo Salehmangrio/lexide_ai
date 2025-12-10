@@ -75,6 +75,8 @@ export default function AuthPage() {
 
   // Google Sign-In
   const signInWithGoogle = async () => {
+    console.log(window.location.origin);
+    
   setLoading(true);
   try {
     const { error } = await supabase.auth.signInWithOAuth({
