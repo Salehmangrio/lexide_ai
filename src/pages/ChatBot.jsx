@@ -47,7 +47,7 @@ How can I assist you today?`,
         headers: {
           Authorization: `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": window.location.origin,
+          "Referer": window.location.origin,
           "X-Title": "Lexide AI",
         },
         body: JSON.stringify({
