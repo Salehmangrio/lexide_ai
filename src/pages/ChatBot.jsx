@@ -29,8 +29,6 @@ How can I assist you today?`,
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
 
-  const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
@@ -45,7 +43,7 @@ How can I assist you today?`,
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
           "Referer": window.location.origin,
           "X-Title": "Lexide AI",
