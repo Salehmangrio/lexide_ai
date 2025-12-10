@@ -40,30 +40,30 @@ How can I assist you today?`,
     setLoading(true);
 
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "Referer": window.location.origin,
-          "X-Title": "Lexide AI",
         },
         body: JSON.stringify({
-          model: "mistralai/devstral-2512:free",
-          messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
+          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
 
-      if (!res.ok) throw new Error(`API Error: ${res.status}`);
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Server error: ${res.status} – ${err}`);
+      }
 
       const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "I'm having trouble responding. Please try again.";
+      const reply = data.choices?.[0]?.message?.content || "Sorry, no response.";
 
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
-      setMessages((prev) => [
+      console.error(err);
+      setMessages(prev => [
         ...prev,
-        { role: "assistant", content: `Connection Error: ${err.message}\n\nPlease check your internet or API key.` },
+        { role: "assistant", content: `Error: ${err.message}\n\nPlease try again.` }
       ]);
     } finally {
       setLoading(false);
