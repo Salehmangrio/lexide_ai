@@ -29,48 +29,108 @@ How can I assist you today?`,
   const chatContainerRef = useRef(null);
   const inputRef = useRef(null);
 
+  // ORIGINAL NON-STREAMING FUNCTION
+  // const sendMessage = async () => {
+  //   if (!input.trim() || loading) return;
+
+  //   const userMessage = { role: "user", content: input.trim() };
+  //   const updatedMessages = [...messages, userMessage];
+
+  //   setMessages(updatedMessages);
+  //   setInput("");
+  //   setLoading(true);
+
+  //   try {
+  //     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  //       method: "POST",
+  //       headers: {
+  //         Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+  //         "Content-Type": "application/json",
+  //         "Referer": window.location.origin,
+  //         "X-Title": "Lexide AI",
+  //       },
+  //       body: JSON.stringify({
+  //         model: "mistralai/devstral-2512:free",
+  //         messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
+  //       }),
+  //     });
+
+  //     if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
+  //     const data = await res.json();
+  //     const reply = data.choices?.[0]?.message?.content || "I'm having trouble responding. Please try again.";
+
+  //     setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+  //   } catch (err) {
+  //     setMessages((prev) => [
+  //       ...prev,
+  //       { role: "assistant", content: `Connection Error: ${err.message}\n\nPlease check your internet or API key.` },
+  //     ]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // For NETLIFY FUNCTION USAGE
+  // In ChatBot.jsx — replace sendMessage
+  
+  // STREAMING FUNCTION
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
     const userMessage = { role: "user", content: input.trim() };
-    const updatedMessages = [...messages, userMessage];
+    const newMessages = [...messages, userMessage, { role: "assistant", content: "" }];
 
-    setMessages(updatedMessages);
+    setMessages(newMessages);
     setInput("");
     setLoading(true);
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: newMessages.slice(0, -1).map(m => ({ role: m.role, content: m.content }))
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Server error: ${res.status} – ${err}`);
+      if (!res.ok) throw new Error("Connection failed");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const jsonStr = line.slice(6);
+              const parsed = JSON.parse(jsonStr);
+              const token = parsed.choices?.[0]?.delta?.content || "";
+              if (token) {
+                assistantContent += token;
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[updated.length - 1].content = assistantContent;
+                  return updated;
+                });
+              }
+            } catch (e) { /* Skip parse errors */ }
+          }
+        }
       }
-
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "Sorry, no response.";
-
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch (err) {
-      console.error(err);
-      setMessages(prev => [
-        ...prev,
-        { role: "assistant", content: `Error: ${err.message}\n\nPlease try again.` }
-      ]);
+      setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: `Error: ${err.message}. Try again?` }]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Auto-scroll
   useEffect(() => {
     chatContainerRef.current?.scrollTo({
       top: chatContainerRef.current.scrollHeight,
