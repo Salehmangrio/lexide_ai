@@ -96,7 +96,7 @@ How can I assist you today?`,
     gsap.fromTo(
       ".message-item:not(.typing)",
       { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.5, stagger: 0.css1, ease: "power2.out" }
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }
     );
   }, [messages]);
 
